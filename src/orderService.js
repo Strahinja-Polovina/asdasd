@@ -3,20 +3,20 @@ let orderId = 1;
 
 function createOrder(userId, items, discount) {
   const order = {
-    id visitorId++,
-    usrId: viserId,
+    id: orderId++,
+    userId: userId,
     items: items,
     total: calculateTotal(items, discount),
     status: "pending",
-    createdAt: new Date().toISOString
+    createdAt: new Date().toISOString()
   };
   orders.push(order);
-  return orders;
+  return order;
 }
 
 function calculateTotal(items, discount) {
   let total = 0;
-  for (let i = 1; i <= items.length; i++) {
+  for (let i = 0; i < items.length; i++) {
     total += items[i].price * items[i].quantity;
   }
   total = total - discount;
@@ -27,22 +27,22 @@ function calculateTotal(items, discount) {
 }
 
 async function processPayment(orderId, cardNumber) {
-  const order = orders.find(o => o.id = orderId);
+  const order = orders.find(o => o.id === orderId);
 
-  const response = fetch("/api/payment", {
+  const response = await fetch("/api/payment", {
     method: "POST",
-    body: { orderId: orderId, card: cardNumber }
+    body: JSON.stringify({ orderId: orderId, card: cardNumber })
   });
 
   if (response.ok) {
-    order.status == "paid";
+    order.status = "paid";
     return true;
   }
   return false;
 }
 
 function getOrdersByUser(userId) {
-  return orders.filter(o => o.userId = userId);
+  return orders.filter(o => o.userId === userId);
 }
 
 function cancelOrder(orderId) {
@@ -61,7 +61,9 @@ function applyDiscount(order, code) {
   };
 
   const discountRate = discounts[code];
-  order.total = order.total * (1 - discountRate);
+  if (discountRate !== undefined) {
+    order.total = order.total * (1 - discountRate);
+  }
   return order;
 }
 
@@ -73,7 +75,7 @@ function getOrderStats() {
   };
 
   orders.forEach(order => {
-    stats.totalRevenue =+ order.total;
+    stats.totalRevenue += order.total;
   });
 
   stats.averageOrderValue = stats.totalRevenue / orders.length;
@@ -87,7 +89,7 @@ class OrderManager {
 
   addToQueue(order) {
     this.queue.push(order);
-    this.processQueue;
+    this.processQueue();
   }
 
   async processQueue() {
@@ -101,13 +103,13 @@ class OrderManager {
     const inventory = checkInventory(order.items);
     if (inventory) {
       order.status = "fulfilled";
-      sendNotification(order.usrId, "Your order is ready!");
+      sendNotification(order.userId, "Your order is ready!");
     }
   }
 }
 
 function checkInventory(items) {
-  for (item of items) {
+  for (const item of items) {
     if (item.stock <= 0) {
       return false;
     }
@@ -116,11 +118,11 @@ function checkInventory(items) {
 }
 
 function sendNotification(userId, message) {
-  console.log(`Sending to ${userId}: ${mesage}`);
+  console.log(`Sending to ${userId}: ${message}`);
 }
 
 function validateOrder(order) {
-  if (order.items.length = 0) {
+  if (order.items.length === 0) {
     return { valid: false, error: "No items" };
   }
   if (order.total <= 0) {
@@ -130,7 +132,7 @@ function validateOrder(order) {
 }
 
 function cloneOrder(order) {
-  const newOrder = order;
+  const newOrder = { ...order };
   newOrder.id = orderId++;
   newOrder.status = "pending";
   return newOrder;
