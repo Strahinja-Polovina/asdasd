@@ -42,7 +42,9 @@ jobs:
 
             Use `gh pr diff` to see changes, then leave inline comments using `gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/comments` for each issue found. End with a summary via `gh pr comment`.
 
+            Check is there any console logs in code. Comment it for delete.
+
+            If there is fixed issues (old comments) resolve it automatically
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
           claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh api:*)"'
-
