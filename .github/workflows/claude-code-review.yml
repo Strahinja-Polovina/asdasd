@@ -40,11 +40,30 @@ jobs:
           prompt: |
             Review PR #${{ github.event.pull_request.number }} in ${{ github.repository }}.
 
-            Use `gh pr diff` to see changes, then leave inline comments using `gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/comments` for each issue found. End with a summary via `gh pr comment`.
+            CRITICAL REQUIREMENT - You MUST create inline comments for EACH issue:
 
-            Check is there any console logs in code. Comment it for delete.
+            1. First, get the PR diff and latest commit SHA:
+               gh pr view ${{ github.event.pull_request.number }} --json headRefOid
+               gh pr diff ${{ github.event.pull_request.number }}
 
-            If there is fixed issues (old comments) resolve it automatically
+            2. For EACH bug/issue found, create an inline comment using this EXACT format:
+               gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/comments \
+                 -f body="🐛 [Issue description here]" \
+                 -f commit_id="[SHA from step 1]" \
+                 -f path="[file path, e.g., src/file.js]" \
+                 -F line=[line number]
+
+            3. DO NOT create a single summary comment. Each bug = one inline comment on the specific line.
+
+            4. Special checks:
+               - Flag ANY console.log/console.error statements with inline comment requesting removal
+               - Flag hardcoded passwords or API keys as 🔴 SECURITY ISSUE
+               - Flag missing null checks, off-by-one errors, assignment vs comparison bugs
+
+            5. After all inline comments are posted, THEN create a final summary:
+               gh pr comment ${{ github.event.pull_request.number }} --body "Code review complete. Posted [X] inline comments on specific issues."
+
+            6. Auto-resolve previously fixed issues (check if old comment locations no longer have the bug)
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
           claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh api:*)"'
