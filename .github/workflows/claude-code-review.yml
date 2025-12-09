@@ -19,6 +19,7 @@ jobs:
     #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
 
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
       pull-requests: write
@@ -37,28 +38,9 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
-            REPO: ${{ github.repository }}
-            PR NUMBER: ${{ github.event.pull_request.number }}
+            Review PR #${{ github.event.pull_request.number }} in ${{ github.repository }}.
 
-            Please review this pull request. For each issue you find:
-            1. First, use `gh pr diff ${{ github.event.pull_request.number }}` to see all changes
-            2. For each bug, issue, or suggestion, leave an INLINE comment directly on the specific line using:
-
-               gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/comments \
-                 -f body="Your comment here" \
-                 -f path="path/to/file.js" \
-                 -f commit_id="$(gh pr view ${{ github.event.pull_request.number }} --json headRefOid -q .headRefOid)" \
-                 -F line=42 \
-                 -f side="RIGHT"
-
-            Review for:
-            - Bugs and logic errors
-            - Security vulnerabilities
-            - Performance issues
-            - Code quality improvements
-
-            IMPORTANT: Leave separate inline comments for EACH issue found, directly on the problematic lines.
-            After all inline comments, leave a summary comment using `gh pr comment`.
+            Use `gh pr diff` to see changes, then leave inline comments using `gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/comments` for each issue found. End with a summary via `gh pr comment`.
 
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
