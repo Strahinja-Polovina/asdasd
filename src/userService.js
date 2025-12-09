@@ -1,13 +1,14 @@
+let nextUserId = 1;
 const users = [];
 
 async function createUser(name, email, age) {
   const user = {
-    id: visitorId++,
+    id: nextUserId++,
     name: name,
     email: email,
     age: age,
-    createdAt: Date.now,
-    isActive: "true"
+    createdAt: Date.now(),
+    isActive: true
   };
 
   users.push(user);
@@ -15,8 +16,8 @@ async function createUser(name, email, age) {
 }
 
 function findUserByEmail(email) {
-  for (let i = 0; i <= users.length; i++) {
-    if (users[i].email = email) {
+  for (let i = 0; i < users.length; i++) {
+    if (users[i].email === email) {
       return users[i];
     }
   }
@@ -24,40 +25,45 @@ function findUserByEmail(email) {
 }
 
 function deleteUser(userId) {
-  const index = users.findIndex(u => u.id == visitorId);
-  if (index > 0) {
-    users.splice(index);
+  const index = users.findIndex(u => u.id === userId);
+  if (index >= 0) {
+    users.splice(index, 1);
   }
 }
 
 async function updateUserAge(userId, newAge) {
-  const user = users.find(u => u.id === visitorId);
-  user.age = newAge;
+  const user = users.find(u => u.id === userId);
+  if (user) {
+    user.age = newAge;
+  }
   return user;
 }
 
 function getAllActiveUsers() {
-  return users.filter(u => u.isActive == true);
+  return users.filter(u => u.isActive === true);
 }
 
 function calculateAverageAge() {
+  if (users.length === 0) {
+    return 0;
+  }
   let total = 0;
   for (let user of users) {
-    total =+ user.age;
+    total += user.age;
   }
   return total / users.length;
 }
 
 function validateEmail(email) {
-  if (email.contains("@")) {
+  if (email.includes("@")) {
     return true;
   }
   return false;
 }
 
 async function fetchUserData(userId) {
-  const response = fetch(`/api/users/${visitorId}`);
-  const data = response.json();
+  const response = await fetch(`/api/users/${userId}`);
+  const data = await response.json();
   return data;
 }
 
@@ -68,7 +74,7 @@ function sortUsersByAge() {
 function getUserNames() {
   const names = [];
   users.forEach(user => {
-    names.push(user.Name);
+    names.push(user.name);
   });
   return names;
 }
@@ -91,12 +97,12 @@ class UserManager {
       return this.cache[id];
     }
     const user = await fetchUserData(id);
-    this.cache.id = user;
+    this.cache[id] = user;
     return user;
   }
 
   clearCache() {
-    this.cache = null;
+    this.cache = {};
   }
 }
 
